@@ -1,0 +1,51 @@
+---
+- hosts: oracledb
+  tasks:
+    - name: Creating home directory
+      file:
+        path: /u02/app/oracle/product/12201
+        state: directory
+        owner: oracle
+        group: oinstall
+        mode: '0755'
+        
+    - name: create oraInventory
+      file:
+        path: /u02/app/oraInventory
+        state: directory
+        owner: oracle
+        group: oinstall
+
+    - name: creating oracle binary folder
+      file:
+        path: /u02/software1
+        state: directory
+        owner: oracle
+        group: oinstall
+
+   # - name: Copying binary from remote
+   #   copy: 
+   #     src: /u02/softwear/oracle12.2c/linuxx64_12201_database.zip
+   #     dest: /u02/software1
+   #     owner: oracle
+   #     group: oinstall
+
+    - name: Unarchive a file
+      unarchive:
+        src: /u02/software1/linuxx64_12201_database.zip
+        dest: /u02/software1
+        remote_src: yes
+
+    - name: create response file
+      copy:
+        src: /u02/ansible-oracle12c-install/db_12c_install.rsp
+        dest: /u02/software1/db_12c_install.rsp 
+        owner: oracle 
+        group: oinstall
+
+    - name: install oracle 12.2.0.1 binary
+      shell: "/u02/software1/database/runInstaller -silent -ignorePrereq -ignoreSysPrereqs -waitforcompletion -responseFile /u02/software1/db_12c_install.rsp"
+
+    - name: run root.sh
+      become: yes
+      shell: "sh /u02/app/oracle/product/12201/root.sh"
